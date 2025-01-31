@@ -253,21 +253,25 @@ class A2V_Multi_Image_Composite:
             self.update_preview()
 
     def apply_blend_mode(self, background, foreground, mode, opacity):
+        """Apply blend mode between background and foreground with proper alpha handling"""
         background = background.astype(np.float32) / 255.0
         foreground = foreground.astype(np.float32) / 255.0
+        
+        # Expand opacity to 3 channels to match background shape
+        opacity_3ch = np.dstack([opacity] * 3)
 
         if mode == "normal":
-            result = background * (1 - opacity) + foreground * opacity
+            result = background * (1 - opacity_3ch) + foreground * opacity_3ch
         elif mode == "multiply":
-            result = background * foreground * opacity + background * (1 - opacity)
+            result = background * foreground * opacity_3ch + background * (1 - opacity_3ch)
         elif mode == "screen":
-            result = 1 - (1 - background) * (1 - foreground * opacity)
+            result = 1 - (1 - background) * (1 - foreground * opacity_3ch)
         elif mode == "overlay":
             mask = background >= 0.5
             result = np.zeros_like(background)
             result[mask] = 1 - 2 * (1 - background[mask]) * (1 - foreground[mask])
             result[~mask] = 2 * background[~mask] * foreground[~mask]
-            result = result * opacity + background * (1 - opacity)
+            result = result * opacity_3ch + background * (1 - opacity_3ch)
         
         return (np.clip(result, 0, 1) * 255).astype(np.uint8)
 
@@ -355,7 +359,7 @@ class A2V_Multi_Image_Composite:
         try:
             result = self.current_bg.copy()
             
-            # Composite all images in layer order
+            # Composite all images
             for layer_idx in self.layer_order:
                 img = self.current_images[layer_idx]
                 params = self.image_params[layer_idx]
@@ -379,13 +383,18 @@ class A2V_Multi_Image_Composite:
                     bg_region = result[y1:y2, x1:x2]
                     
                     if img_roi.shape[2] == 4:
-                        alpha = img_roi[:, :, 3:4] / 255.0
+                        # Extract alpha and ensure it's a 2D array
+                        alpha = img_roi[:, :, 3] / 255.0
                         img_roi_rgb = img_roi[:, :, :3]
+                        
+                        # Apply alpha to base opacity
+                        combined_opacity = params['opacity'] * alpha
+                        
                         blended = self.apply_blend_mode(
                             bg_region,
                             img_roi_rgb,
                             params['blend_mode'],
-                            params['opacity'] * alpha[..., 0]
+                            combined_opacity
                         )
                         result[y1:y2, x1:x2] = blended
                     else:
@@ -409,6 +418,8 @@ class A2V_Multi_Image_Composite:
             
         except Exception as e:
             print(f"Warning: Preview update error: {str(e)}")
+            import traceback
+            traceback.print_exc()  # Print detailed error for debugging
 
     def update_control_panel(self):
         """Update control panel values for selected image"""
