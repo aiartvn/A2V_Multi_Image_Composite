@@ -1,0 +1,18 @@
+{
+    "a2v_multi_image_composite": {
+        "title": "A2V Multi Image Composite",
+        "description": "Node for compositing multiple images with interactive preview and layer management",
+        "author": "A2V Team",
+        "version": "1.0.0",
+        "preview_image": "",
+        "category": "image/processing",
+        "nodeTypes": ["A2V Multi Image Composite"],
+        "tags": ["image", "composite", "layer", "blend", "transform"],
+        "requirements": ["numpy", "opencv-python", "pillow", "torch"],
+        "install_type": "git",
+        "files": [
+            "a2v_multi_image_composite.py",
+            "__init__.py"
+        ]
+    }
+}
