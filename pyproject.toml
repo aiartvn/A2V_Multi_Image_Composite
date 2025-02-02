@@ -1,0 +1,15 @@
+[project]
+name = "a2v_multi_image_composite"
+description = "Node for compositing multiple images with interactive preview and layer management"
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=1.21.0", "opencv-python>=4.5.0", "Pillow>=8.0.0", "torch>=1.7.0"]
+
+[project.urls]
+Repository = "https://github.com/aiartvn/A2V_Multi_Image_Composite"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "A2V_Multi_Image_Composite"
+Icon = ""
